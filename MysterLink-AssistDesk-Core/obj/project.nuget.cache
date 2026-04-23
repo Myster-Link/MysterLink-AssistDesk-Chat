@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "1S9rKW3qvHs=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\MysterLink-PC\\Desktop\\Proyecto Mañana\\MysterLink-AssistDesk-Core\\MysterLink-AssistDesk-Core\\MysterLink-AssistDesk-Core.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\MysterLink-PC\\.nuget\\packages\\microsoft.visualstudio.azure.containers.tools.targets\\1.23.0\\microsoft.visualstudio.azure.containers.tools.targets.1.23.0.nupkg.sha512"
+  ],
+  "logs": []
+}

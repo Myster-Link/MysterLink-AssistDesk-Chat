@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "MysterLink-AssistDesk-Core/1.0.0": {
+        "runtime": {
+          "MysterLink-AssistDesk-Core.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "MysterLink-AssistDesk-Core/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

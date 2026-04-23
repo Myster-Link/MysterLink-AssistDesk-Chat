@@ -1,0 +1,355 @@
+﻿@{
+	Layout = null;
+	var currentUser = ViewBag.User as string;
+}
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Chat – @currentUser</title>
+    
+	<script src="https://cdn.tailwindcss.com"></script>
+	<script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js"></script>
+
+	<style>
+		/* Personalización de colores específicos de WhatsApp Dark */
+		:root {
+		--wa-bg-deep: #0b141a;
+		--wa-bg-sidebar: #111b21;
+		--wa-bg-header: #202c33;
+		--wa-bubble-me: #005c4b;
+		--wa-bubble-them: #202c33;
+		--wa-text-main: #e9edef;
+		--wa-text-secondary: #8696a0;
+		}
+
+		body {
+		background-color: var(--wa-bg-deep);
+		color: var(--wa-text-main);
+		}
+
+		/* Burbujas */
+		.bubble-me {
+		background-color: var(--wa-bubble-me);
+		color: #e9edef;
+		border-radius: 10px 0 10px 10px;
+		box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
+		}
+
+		.bubble-them {
+		background-color: var(--wa-bubble-them);
+		color: #e9edef;
+		border-radius: 0 10px 10px 10px;
+		box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
+		}
+
+		/* Scrollbar estilo moderno */
+		#messages::-webkit-scrollbar, #contacts::-webkit-scrollbar {
+		width: 6px;
+		}
+
+		#messages::-webkit-scrollbar-thumb, #contacts::-webkit-scrollbar-thumb {
+		background: rgba(134, 150, 160, 0.2);
+		}
+
+		.chat-bg {
+		position: absolute;
+		inset: 0;
+		z-index: 0;
+		pointer-events: none;
+		background-image: url("data:image/svg+xml,%3Csvg width='140' height='140' viewBox='0 0 140 140' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='0.09'%3E%3Ccircle cx='25' cy='25' r='10'/%3E%3Crect x='85' y='20' width='18' height='18' transform='rotate(25 94 29)'/%3E%3Cpath d='M30 110l10-18 10 18z'/%3E%3Ccircle cx='110' cy='105' r='6'/%3E%3Crect x='15' y='80' width='14' height='14' transform='rotate(-15 22 87)'/%3E%3Cpath d='M95 75c6 0 10 4 10 10s-4 10-10 10-10-4-10-10 4-10 10-10z'/%3E%3C/g%3E%3C/svg%3E");
+		background-repeat: repeat;
+		background-size: 140px 140px;
+		}
+	</style>
+</head>
+<body class="flex h-screen overflow-hidden font-sans text-sm antialiased">
+
+	<aside class="w-80 md:w-96 flex-shrink-0 bg-[#111b21] border-r border-[#222d34] flex flex-col z-10">
+
+		<div class="flex items-center justify-between px-4 py-3 bg-[#202c33]">
+			<div class="flex items-center gap-3">
+				<div class="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center
+					text-white font-bold text-lg border border-[#313d45] shadow-inner">
+					@currentUser![0]
+				</div>
+				<div>
+					<p class="text-[#e9edef] font-medium leading-tight">@currentUser</p>
+					<p class="text-[#8696a0] text-xs">Mi Perfil</p>
+				</div>
+			</div>
+			<div class="flex gap-4 text-[#8696a0]">
+				<button class="hover:text-white transition-colors">
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" /></svg>
+				</button>
+			</div>
+		</div>
+
+		<div class="px-3 py-2 bg-[#111b21]">
+			<div class="relative flex items-center bg-[#202c33] rounded-lg px-3">
+				<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[#8696a0]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+				<input id="search" placeholder="Buscar o empezar un chat nuevo"
+					   class="w-full px-4 py-2 bg-transparent text-[#d1d7db] text-xs
+				placeholder-[#8696a0] focus:outline-none" />
+			</div>
+		</div>
+
+		<ul id="contacts" class="flex-1 overflow-y-auto divide-y divide-[#222d34]">
+		</ul>
+	</aside>
+
+	<section class="flex-1 flex flex-col min-w-0 relative bg-[#0b141a]">
+    
+		<div class="chat-bg"></div>
+
+		<div id="chatHeader"
+			 class="relative z-10 flex items-center gap-3 px-4 py-2 bg-[#202c33] text-white">
+			<div id="headerAvatar"
+				 class="hidden w-10 h-10 rounded-full items-center justify-center
+				font-bold uppercase text-sm border border-[#313d45]">
+			</div>
+			<div class="flex-1">
+				<p id="headerName" class="font-medium text-[#e9edef] text-[15px]">Seleccioná un usuario</p>
+				<p id="headerStatus" class="text-[12px] text-[#8696a0]"></p>
+			</div>
+		</div>
+
+		<div id="messages"
+			 class="relative z-10 flex-1 overflow-y-auto px-10 py-6 space-y-4">
+
+			<div id="emptyState" class="h-full flex items-center justify-center">
+				<div class="text-center max-w-sm">
+					<div class="w-48 h-48 bg-[#202c33] rounded-full mx-auto mb-8 flex items-center justify-center shadow-xl">
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 text-[#8696a0]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+					</div>
+					<h2 class="text-[#e9edef] text-2xl font-light mb-2">WhatsApp Web MVP</h2>
+					<p class="text-[#8696a0] text-sm leading-relaxed">
+						Envía y recibe mensajes sin necesidad de tener tu teléfono conectado.<br>
+						Usa SignalR para una comunicación en tiempo real.
+					</p>
+				</div>
+			</div>
+		</div>
+
+		<div id="inputArea"
+			 class="hidden relative z-10 flex items-center gap-4 px-4 py-2 bg-[#202c33]">
+			<button class="text-[#8696a0] hover:text-[#d1d7db] transition-colors">
+				<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+			</button>
+			<button class="text-[#8696a0] hover:text-[#d1d7db] transition-colors">
+				<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+			</button>
+        
+			<input id="msgInput"
+				   placeholder="Escribe un mensaje"
+				   class="flex-1 px-4 py-2.5 bg-[#2a3942] rounded-lg text-[#d1d7db]
+			focus:outline-none placeholder-[#8696a0]"
+				   onkeydown="if(event.key==='Enter') send()" />
+        
+			<button onclick="send()"
+					class="text-[#8696a0] hover:text-[#00a884] active:scale-90 transition-all">
+				<svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 20 20" fill="currentColor">
+					<path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+				</svg>
+			</button>
+		</div>
+	</section>
+
+	<script>
+		// ── Estado ──────────────────────────────────────────────────────────────
+		const ME = "@currentUser";
+		let selectedUser = null;   // username del chat activo
+
+		// ── Conexión SignalR ─────────────────────────────────────────────────────
+		const conn = new signalR.HubConnectionBuilder()
+		.withUrl(`/chatHub?user=${ME}`)
+		.withAutomaticReconnect()
+		.build();
+
+		// ── Eventos entrantes ────────────────────────────────────────────────────
+
+		// Lista de contactos [ { username, isOnline }, … ]
+		conn.on("UserList", (contacts) => {
+		renderContacts(contacts);
+		});
+
+		// Historial cargado al abrir conversación
+		conn.on("LoadHistory", (messages) => {
+		clearMessages();
+		messages.forEach(appendMessage);
+		scrollToBottom();
+		});
+
+		// Mensaje en tiempo real
+		conn.on("ReceiveMessage", (msg) => {
+		// Solo mostrarlo si la conversación activa coincide
+		const other = msg.fromUser === ME ? msg.toUser : msg.fromUser;
+		if (other === selectedUser) {
+		appendMessage(msg);
+		scrollToBottom();
+		}
+		});
+
+		// ── Inicio ───────────────────────────────────────────────────────────────
+		conn.start()
+		.then(() => console.log("SignalR conectado"))
+		.catch(err => console.error("Error al conectar:", err));
+
+		// ── Renderizar lista de contactos ─────────────────────────────────────────
+		function renderContacts(list) {
+		const ul      = document.getElementById("contacts");
+		const search  = document.getElementById("search").value.toLowerCase();
+		ul.innerHTML  = "";
+
+		const filtered = list.filter(c => c.username.toLowerCase().includes(search));
+
+		if (filtered.length === 0) {
+		ul.innerHTML = `<li class="px-4 py-10 text-center text-[#8696a0] text-sm">No hay contactos</li>`;
+		return;
+		}
+
+		filtered.forEach(c => {
+		const li = document.createElement("li");
+		li.dataset.username = c.username;
+
+		const isActive = c.username === selectedUser;
+        
+		// CAMBIO AQUÍ:
+		// hover:bg-[#202c33] -> Gris muy sutil al pasar el mouse
+		// bg-[#2a3942] -> Color de "seleccionado" (un poquito más claro que el hover)
+		li.className = `flex items-center gap-3 px-4 py-3 cursor-pointer border-b border-[#222d34]
+		transition-all duration-200
+		hover:bg-[#202c33]
+		${isActive ? "bg-[#2a3942]" : "bg-transparent"}`;
+
+		const initial = c.username[0].toUpperCase();
+		const dotColor = c.isOnline ? "bg-[#00a884]" : "bg-[#8696a0]";
+
+		li.innerHTML = `
+		<div class="relative flex-shrink-0">
+		<div class="w-12 h-12 rounded-full bg-[#2f5f7a] flex items-center
+		justify-center text-[#e9edef] font-semibold text-lg border border-[#2f5f7a]">
+		${initial}
+		</div>
+		<span class="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 rounded-full
+		ring-2 ring-[#111b21] ${dotColor}"></span>
+		</div>
+		<div class="flex-1 min-w-0">
+		<p class="font-medium text-[#e9edef] truncate text-[16px]">${c.username}</p>
+		<p class="text-xs ${c.isOnline ? "text-[#00a884]" : "text-[#8696a0]"} font-medium">
+		${c.isOnline ? "en línea" : "desconectado"}
+		</p>
+		</div>`;
+
+		li.onclick = () => openChat(c);
+		ul.appendChild(li);
+		});
+		}
+
+		// ── Abrir conversación ────────────────────────────────────────────────────
+		function openChat(contact) {
+		selectedUser = contact.username;
+
+		// Actualizar header
+		document.getElementById("headerName").textContent = contact.username;
+		document.getElementById("headerStatus").textContent =
+		contact.isOnline ? "En línea" : "Desconectado";
+
+		const av = document.getElementById("headerAvatar");
+		av.textContent = contact.username[0].toUpperCase();
+		av.classList.remove("hidden");
+		av.classList.add("flex");
+		av.style.background = contact.isOnline ? "#22c55e" : "#94a3b8";
+
+		// Mostrar input
+		document.getElementById("inputArea").classList.remove("hidden");
+		document.getElementById("emptyState").classList.add("hidden");
+
+		// Marcar activo en lista
+		document.querySelectorAll("#contacts li").forEach(li => {
+		const isThis = li.dataset.username === contact.username;
+		li.classList.toggle("bg-slate-800", isThis);
+		li.classList.toggle("border-l-4", isThis);
+		li.classList.toggle("border-blue-500", isThis);
+		});
+
+		// Pedir historial
+		clearMessages();
+		conn.invoke("GetHistory", contact.username)
+		.catch(err => console.error("GetHistory error:", err));
+		}
+
+		// ── Renderizar mensajes ───────────────────────────────────────────────────
+		function appendMessage(msg) {
+		const isMine = msg.fromUser === ME;
+		const wrap   = document.createElement("div");
+		wrap.className = `flex ${isMine ? "justify-end" : "justify-start"}`;
+
+		const time = new Date(msg.timestamp).toLocaleTimeString([], {
+		hour: "2-digit", minute: "2-digit"
+		});
+
+		wrap.innerHTML = `
+		<div class="${isMine ? "bubble-me" : "bubble-them"}
+		px-4 py-2 shadow-sm max-w-xs lg:max-w-md xl:max-w-lg">
+		${!isMine
+		? `<p class="text-blue-400 font-semibold text-xs mb-0.5">${msg.fromUser}</p>`
+		: ""}
+		<p class="text-slate-100 leading-snug">${escapeHtml(msg.message)}</p>
+		<p class="text-right text-slate-400 text-[10px] mt-0.5">${time}</p>
+		</div>`;
+
+		document.getElementById("messages").appendChild(wrap);
+		}
+
+		function clearMessages() {
+		const div = document.getElementById("messages");
+		// Dejar solo el emptyState (oculto)
+		div.innerHTML = `<div id="emptyState"
+		class="h-full hidden items-center justify-center text-slate-400"></div>`;
+		}
+
+		function scrollToBottom() {
+		const div = document.getElementById("messages");
+		div.scrollTop = div.scrollHeight;
+		}
+
+		// ── Enviar mensaje ────────────────────────────────────────────────────────
+		function send() {
+		if (!selectedUser) { alert("Seleccioná un usuario"); return; }
+
+		const input = document.getElementById("msgInput");
+		const text  = input.value.trim();
+		if (!text) return;
+
+		conn.invoke("SendPrivateMessage", selectedUser, text)
+		.catch(err => console.error("SendPrivateMessage error:", err));
+
+		input.value = "";
+		input.focus();
+		}
+
+		// ── Búsqueda en tiempo real ───────────────────────────────────────────────
+		document.getElementById("search").addEventListener("input", () => {
+		// Re-renderizar con el filtro actual (la lista ya está en memoria)
+		// Hacemos un invoke vacío para que el hub re-envíe la lista
+		// O podemos filtrar localmente guardando la lista
+		// Guardamos la última lista recibida:
+		if (window._lastContacts) renderContacts(window._lastContacts);
+		});
+
+		// Guardar la lista recibida para el filtro local
+		conn.on("UserList", (contacts) => {
+		window._lastContacts = contacts;
+		renderContacts(contacts);
+		});
+
+		// ── Utilidad ──────────────────────────────────────────────────────────────
+		function escapeHtml(str) {
+		return str.replace(/&/g,"&amp;").replace(/</g,"&lt;")
+		.replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+		}
+	</script>
+</body>
+</html>
