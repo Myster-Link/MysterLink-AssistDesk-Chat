@@ -1,5 +1,6 @@
 wwwroot\css\site.css
 wwwroot\css\tailwind.min.css
+wwwroot\data\users.json
 wwwroot\favicon.ico
 wwwroot\js\site.js
 wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css
@@ -274,5 +275,3 @@ wwwroot\lib\microsoft\signalr\src\third-party-notices.txt
 wwwroot\lib\microsoft\signalr\src\Utils.ts
 wwwroot\lib\microsoft\signalr\src\WebSocketTransport.ts
 wwwroot\lib\microsoft\signalr\src\XhrHttpClient.ts
-wwwroot\data\messages\JosueLeiva_MysterLink.json
-wwwroot\data\users.json

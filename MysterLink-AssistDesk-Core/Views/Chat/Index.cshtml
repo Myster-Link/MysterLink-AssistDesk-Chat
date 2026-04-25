@@ -147,7 +147,7 @@
 			focus:outline-none placeholder-[#8696a0]"
 				   onkeydown="if(event.key==='Enter') send()" />
         
-			<button onclick="send()"
+			<button id="btnSend" onclick="send()"
 					class="text-[#8696a0] hover:text-[#00a884] active:scale-90 transition-all">
 				<svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 20 20" fill="currentColor">
 					<path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
@@ -160,6 +160,7 @@
 		// ── Estado ──────────────────────────────────────────────────────────────
 		const ME = "@currentUser";
 		let selectedUser = null;   // username del chat activo
+		const BOT_ID = "MysterLink BOT Assistant"; // ID reservado para el Bot
 
 		// ── Conexión SignalR ─────────────────────────────────────────────────────
 		const conn = new signalR.HubConnectionBuilder()
@@ -202,9 +203,35 @@
 		const search  = document.getElementById("search").value.toLowerCase();
 		ul.innerHTML  = "";
 
-		const filtered = list.filter(c => c.username.toLowerCase().includes(search));
+		// 1. INYECTAR EL BOT SIEMPRE AL PRINCIPIO
+		const botMatchesSearch = BOT_ID.toLowerCase().includes(search);
+		if (botMatchesSearch || search === "") {
+		const botLi = document.createElement("li");
+		botLi.dataset.username = BOT_ID;
+		const isBotActive = BOT_ID === selectedUser;
+        
+		botLi.className = `flex items-center gap-3 px-4 py-3 cursor-pointer border-b border-[#222d34] transition-all duration-200 hover:bg-[#202c33] ${isBotActive ? "bg-[#2a3942]" : "bg-transparent"}`;
+        
+		botLi.innerHTML = `
+		<div class="relative flex-shrink-0">
+		<div class="w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center text-[#e9edef] font-semibold text-xl border border-[#2f5f7a]">
+		🤖
+		</div>
+		<span class="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 rounded-full ring-2 ring-[#111b21] bg-[#00a884]"></span>
+		</div>
+		<div class="flex-1 min-w-0">
+		<p class="font-medium text-[#e9edef] truncate text-[16px]">${BOT_ID}</p>
+		<p class="text-xs text-[#00a884] font-medium">Siempre dispuesto a ayudar</p>
+		</div>`;
+        
+		botLi.onclick = () => openChat({ username: BOT_ID, isOnline: true });
+		ul.appendChild(botLi);
+		}
 
-		if (filtered.length === 0) {
+		// 2. RENDERIZAR CONTACTOS HUMANOS
+		const filtered = list.filter(c => c.username.toLowerCase().includes(search) && c.username !== BOT_ID);
+    
+		if (filtered.length === 0 && !botMatchesSearch) {
 		ul.innerHTML = `<li class="px-4 py-10 text-center text-[#8696a0] text-sm">No hay contactos</li>`;
 		return;
 		}
@@ -214,26 +241,17 @@
 		li.dataset.username = c.username;
 
 		const isActive = c.username === selectedUser;
-        
-		// CAMBIO AQUÍ:
-		// hover:bg-[#202c33] -> Gris muy sutil al pasar el mouse
-		// bg-[#2a3942] -> Color de "seleccionado" (un poquito más claro que el hover)
-		li.className = `flex items-center gap-3 px-4 py-3 cursor-pointer border-b border-[#222d34]
-		transition-all duration-200
-		hover:bg-[#202c33]
-		${isActive ? "bg-[#2a3942]" : "bg-transparent"}`;
+		li.className = `flex items-center gap-3 px-4 py-3 cursor-pointer border-b border-[#222d34] transition-all duration-200 hover:bg-[#202c33] ${isActive ? "bg-[#2a3942]" : "bg-transparent"}`;
 
 		const initial = c.username[0].toUpperCase();
 		const dotColor = c.isOnline ? "bg-[#00a884]" : "bg-[#8696a0]";
 
 		li.innerHTML = `
 		<div class="relative flex-shrink-0">
-		<div class="w-12 h-12 rounded-full bg-[#2f5f7a] flex items-center
-		justify-center text-[#e9edef] font-semibold text-lg border border-[#2f5f7a]">
+		<div class="w-12 h-12 rounded-full bg-[#2f5f7a] flex items-center justify-center text-[#e9edef] font-semibold text-lg border border-[#2f5f7a]">
 		${initial}
 		</div>
-		<span class="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 rounded-full
-		ring-2 ring-[#111b21] ${dotColor}"></span>
+		<span class="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 rounded-full ring-2 ring-[#111b21] ${dotColor}"></span>
 		</div>
 		<div class="flex-1 min-w-0">
 		<p class="font-medium text-[#e9edef] truncate text-[16px]">${c.username}</p>
@@ -250,34 +268,48 @@
 		// ── Abrir conversación ────────────────────────────────────────────────────
 		function openChat(contact) {
 		selectedUser = contact.username;
+		const isBot = contact.username === BOT_ID;
 
-		// Actualizar header
 		document.getElementById("headerName").textContent = contact.username;
-		document.getElementById("headerStatus").textContent =
-		contact.isOnline ? "En línea" : "Desconectado";
+		document.getElementById("headerStatus").textContent = contact.isOnline ? "En línea" : "Desconectado";
 
 		const av = document.getElementById("headerAvatar");
-		av.textContent = contact.username[0].toUpperCase();
+		av.textContent = isBot ? "🤖" : contact.username[0].toUpperCase();
 		av.classList.remove("hidden");
 		av.classList.add("flex");
-		av.style.background = contact.isOnline ? "#22c55e" : "#94a3b8";
+		av.style.background = isBot ? "#4f46e5" : (contact.isOnline ? "#22c55e" : "#94a3b8");
 
-		// Mostrar input
 		document.getElementById("inputArea").classList.remove("hidden");
 		document.getElementById("emptyState").classList.add("hidden");
 
-		// Marcar activo en lista
 		document.querySelectorAll("#contacts li").forEach(li => {
 		const isThis = li.dataset.username === contact.username;
-		li.classList.toggle("bg-slate-800", isThis);
-		li.classList.toggle("border-l-4", isThis);
-		li.classList.toggle("border-blue-500", isThis);
+		// Solo para mantener tu estilo original de selección
+		if(isThis) li.classList.add("bg-[#2a3942]");
+		else li.classList.remove("bg-[#2a3942]");
 		});
 
-		// Pedir historial
 		clearMessages();
+
+		if (isBot) {
+		// Cargar historial del bot mediante API REST
+		fetch(`/Chat/GetBotHistory?user=${ME}`)
+		.then(res => res.json())
+		.then(history => {
+		history.forEach(msg => {
+		appendMessage({
+		fromUser: msg.role === "user" ? ME : BOT_ID,
+		message: msg.content,
+		timestamp: new Date().toISOString() // Fallback de tiempo
+		});
+		});
+		scrollToBottom();
+		});
+		} else {
+		// Cargar historial de SignalR
 		conn.invoke("GetHistory", contact.username)
 		.catch(err => console.error("GetHistory error:", err));
+		}
 		}
 
 		// ── Renderizar mensajes ───────────────────────────────────────────────────
@@ -316,39 +348,69 @@
 		}
 
 		// ── Enviar mensaje ────────────────────────────────────────────────────────
-		function send() {
+		async function send() {
 		if (!selectedUser) { alert("Seleccioná un usuario"); return; }
 
 		const input = document.getElementById("msgInput");
+		const btn = document.getElementById("btnSend") || document.querySelector("button[onclick='send()']");
 		const text  = input.value.trim();
 		if (!text) return;
 
+		if (selectedUser === BOT_ID) {
+		// 1. Bloquear Input
+		input.disabled = true;
+		btn.disabled = true;
+		input.placeholder = "MysterLink está pensando...";
+		input.classList.add("opacity-50");
+        
+		try {
+		// 2. Imprimir mensaje del usuario
+		appendMessage({ fromUser: ME, message: text, timestamp: new Date().toISOString() });
+		input.value = "";
+		scrollToBottom();
+
+		// 3. Petición a Ollama
+		const response = await fetch(`/Chat/AskBot`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ User: ME, Message: text })
+		});
+
+		if (response.ok) {
+		const data = await response.json();
+		appendMessage({ fromUser: BOT_ID, message: data.reply, timestamp: new Date().toISOString() });
+		} else {
+		appendMessage({ fromUser: BOT_ID, message: "❌ Error: No se pudo contactar al servidor local de IA.", timestamp: new Date().toISOString() });
+		}
+		} catch (err) {
+		console.error("Error en el bot:", err);
+		appendMessage({ fromUser: BOT_ID, message: "❌ Error interno en la aplicación.", timestamp: new Date().toISOString() });
+		} finally {
+		// 4. Desbloquear Input (Siempre se ejecuta, incluso si hay error)
+		input.disabled = false;
+		btn.disabled = false;
+		input.placeholder = "Escribe un mensaje";
+		input.classList.remove("opacity-50");
+		input.focus();
+		scrollToBottom();
+		}
+		} else {
+		// Flujo normal de SignalR
 		conn.invoke("SendPrivateMessage", selectedUser, text)
 		.catch(err => console.error("SendPrivateMessage error:", err));
-
 		input.value = "";
 		input.focus();
 		}
-
-		// ── Búsqueda en tiempo real ───────────────────────────────────────────────
-		document.getElementById("search").addEventListener("input", () => {
-		// Re-renderizar con el filtro actual (la lista ya está en memoria)
-		// Hacemos un invoke vacío para que el hub re-envíe la lista
-		// O podemos filtrar localmente guardando la lista
-		// Guardamos la última lista recibida:
-		if (window._lastContacts) renderContacts(window._lastContacts);
-		});
-
-		// Guardar la lista recibida para el filtro local
-		conn.on("UserList", (contacts) => {
-		window._lastContacts = contacts;
-		renderContacts(contacts);
-		});
+		}
 
 		// ── Utilidad ──────────────────────────────────────────────────────────────
 		function escapeHtml(str) {
-		return str.replace(/&/g,"&amp;").replace(/</g,"&lt;")
-		.replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+		if (!str) return "";
+		return str.toString()
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/"/g, "&quot;");
 		}
 	</script>
 </body>

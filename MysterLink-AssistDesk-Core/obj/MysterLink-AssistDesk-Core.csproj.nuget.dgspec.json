@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\MysterLink-PC\\Desktop\\Proyecto Mañana\\MysterLink-AssistDesk-Core\\MysterLink-AssistDesk-Core\\MysterLink-AssistDesk-Core.csproj": {}
+    "C:\\Users\\MysterLink-PC\\Desktop\\Proyecto Mañana\\MysterLink-AssistDesk-Chat\\MysterLink-AssistDesk-Core\\MysterLink-AssistDesk-Core.csproj": {}
   },
   "projects": {
-    "C:\\Users\\MysterLink-PC\\Desktop\\Proyecto Mañana\\MysterLink-AssistDesk-Core\\MysterLink-AssistDesk-Core\\MysterLink-AssistDesk-Core.csproj": {
+    "C:\\Users\\MysterLink-PC\\Desktop\\Proyecto Mañana\\MysterLink-AssistDesk-Chat\\MysterLink-AssistDesk-Core\\MysterLink-AssistDesk-Core.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\MysterLink-PC\\Desktop\\Proyecto Mañana\\MysterLink-AssistDesk-Core\\MysterLink-AssistDesk-Core\\MysterLink-AssistDesk-Core.csproj",
+        "projectUniqueName": "C:\\Users\\MysterLink-PC\\Desktop\\Proyecto Mañana\\MysterLink-AssistDesk-Chat\\MysterLink-AssistDesk-Core\\MysterLink-AssistDesk-Core.csproj",
         "projectName": "MysterLink-AssistDesk-Core",
-        "projectPath": "C:\\Users\\MysterLink-PC\\Desktop\\Proyecto Mañana\\MysterLink-AssistDesk-Core\\MysterLink-AssistDesk-Core\\MysterLink-AssistDesk-Core.csproj",
+        "projectPath": "C:\\Users\\MysterLink-PC\\Desktop\\Proyecto Mañana\\MysterLink-AssistDesk-Chat\\MysterLink-AssistDesk-Core\\MysterLink-AssistDesk-Core.csproj",
         "packagesPath": "C:\\Users\\MysterLink-PC\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\MysterLink-PC\\Desktop\\Proyecto Mañana\\MysterLink-AssistDesk-Core\\MysterLink-AssistDesk-Core\\obj\\",
+        "outputPath": "C:\\Users\\MysterLink-PC\\Desktop\\Proyecto Mañana\\MysterLink-AssistDesk-Chat\\MysterLink-AssistDesk-Core\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

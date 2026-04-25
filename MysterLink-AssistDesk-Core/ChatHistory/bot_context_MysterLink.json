@@ -1,0 +1,26 @@
+[
+  {
+    "role": "user",
+    "content": "Hola"
+  },
+  {
+    "role": "assistant",
+    "content": "\u00A1Hola! \u00BFEn qu\u00E9 puedo ayudarte hoy?"
+  },
+  {
+    "role": "user",
+    "content": "Quiero que me digas los dias de la semana"
+  },
+  {
+    "role": "assistant",
+    "content": "Claro, aqu\u00ED est\u00E1n los d\u00EDas de la semana:\n\n1. Lunes\n2. Martes\n3. Mi\u00E9rcoles\n4. Jueves\n5. Viernes\n6. S\u00E1bado\n7. D\u00EDa de la semana (o D\u00EDa Internacional de la Paz, dependiendo del a\u00F1o)\n\n\u00BFTe gustar\u00EDa saber m\u00E1s sobre alg\u00FAn aspecto en particular relacionado con los d\u00EDas de la semana?"
+  },
+  {
+    "role": "user",
+    "content": "Hola como estas?"
+  },
+  {
+    "role": "assistant",
+    "content": "\u00A1Estoy bien, gracias! Es un placer charlar contigo. \u00BFC\u00F3mo te va?"
+  }
+]
